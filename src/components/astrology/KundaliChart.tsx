@@ -29,7 +29,6 @@ export const KundaliChart: React.FC<KundaliChartProps> = ({ chartData, className
 
   const getHouseSign = (houseId: number) => {
     let sign = ascendantSign + (houseId - 1);
-    // Modular logic to wrap around 12
     if (sign > 12) sign = sign % 12 === 0 ? 12 : sign % 12;
     return sign;
   };
@@ -42,75 +41,82 @@ export const KundaliChart: React.FC<KundaliChartProps> = ({ chartData, className
   const isLight = theme === 'light';
   
   const containerClass = isLight 
-    ? "bg-amber-50/50 p-2 rounded border border-amber-200/50 shadow-sm"
-    : "bg-[#0b0f19] p-2 rounded-xl shadow-[0_0_30px_rgba(234,179,8,0.1)] border border-amber-900/50";
+    ? "bg-amber-50/50 p-4 rounded-xl border border-amber-200/50 shadow-sm"
+    : "bg-transparent w-full";
     
   const strokeColor = isLight ? "#ca8a04" : "#fbbf24";
+  const strokeOpacity = isLight ? 1 : 0.4;
   const textColor = isLight ? "fill-slate-800" : "fill-white";
-  const numColor = isLight ? "fill-amber-700/60" : "fill-amber-500/50";
+  const numColor = isLight ? "fill-amber-700/80" : "fill-amber-500/70";
 
   return (
-    <div className={`aspect-square w-full max-w-2xl mx-auto ${containerClass} backdrop-blur-md ${className}`}>
-      <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-sm font-sans" style={{fontFamily: 'Inter, sans-serif'}}>
+    <div className={`aspect-square w-full max-w-2xl mx-auto ${containerClass} ${className}`}>
+      <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-md font-sans overflow-visible" style={{fontFamily: 'Inter, sans-serif'}}>
         <defs>
           <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation="2" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
 
-        {houses.map((house) => (
-          <g key={house.id}>
-            <polygon
-              points={house.points}
-              fill="transparent"
-              stroke={strokeColor}
-              strokeWidth="1.5"
-              className={`transition-colors duration-500 ${isLight ? 'hover:fill-amber-100/30' : 'hover:fill-amber-900/40'}`}
-              style={!isLight ? { filter: 'url(#glow)', strokeOpacity: 0.6 } : undefined}
-            />
-            {/* Zodiac Sign Number */}
-            <text
-              x={house.center.x}
-              y={house.center.y - 12}
-              textAnchor="middle"
-              className={`text-[10px] font-bold ${numColor} translate-y-[4px]`}
-            >
-              {getHouseSign(house.id)}
-            </text>
+        {houses.map((house) => {
+          const housePlanets = getPlanetsInHouse(house.id);
+          const hasMultiple = housePlanets.length > 1;
+          
+          return (
+            <g key={house.id}>
+              <polygon
+                points={house.points}
+                fill="transparent"
+                stroke={strokeColor}
+                strokeWidth="1.5"
+                strokeOpacity={strokeOpacity}
+                className={`transition-colors duration-500 ${isLight ? 'hover:fill-amber-100/30' : 'hover:fill-amber-900/40'}`}
+                style={!isLight ? { filter: 'url(#glow)' } : undefined}
+              />
+              
+              {/* Zodiac Sign Number precisely placed in a subtle corner of the centroid */}
+              <text
+                x={house.center.x}
+                y={house.center.y - (hasMultiple ? 18 : 14)}
+                textAnchor="middle"
+                className={`text-[11px] font-bold ${numColor} mix-blend-screen opacity-80 select-none`}
+              >
+                {getHouseSign(house.id)}
+              </text>
 
-            <text
-              x={house.center.x}
-              y={house.center.y + 6}
-              textAnchor="middle"
-              className={`text-[12px] font-medium ${textColor} tracking-tight`}
-            >
-              {getPlanetsInHouse(house.id).map((p, index) => {
-                let symbol = '';
-                if (p.isRetrograde) symbol += '*';
-                if (p.isCombust) symbol += 'Λ';
-                if (p.isExalted) symbol += '↑';
-                if (p.isDebilitated) symbol += '↓';
-                return (
-                  <tspan
-                    key={p.id}
-                    x={house.center.x}
-                    dy={index === 0 ? 0 : 14}
-                  >
-                    {p.name.substring(0, 2)}{symbol} {Math.floor(p.longitude % 30)}°
-                  </tspan>
-                );
-              })}
-            </text>
-          </g>
-        ))}
+              {/* Planets mapping stacked cleanly */}
+              <text
+                x={house.center.x}
+                y={house.center.y + (hasMultiple ? -4 : 2)}
+                textAnchor="middle"
+                className={`text-[10px] font-medium ${textColor} tracking-wider`}
+              >
+                {housePlanets.map((p, index) => {
+                  let symbol = '';
+                  if (p.isRetrograde) symbol += 'R';
+                  return (
+                    <tspan
+                      key={p.id}
+                      x={house.center.x}
+                      dy={index === 0 ? 0 : 12}
+                    >
+                      {p.name.substring(0, 2)}{symbol} {Math.floor(p.longitude % 30)}°
+                    </tspan>
+                  );
+                })}
+              </text>
+            </g>
+          );
+        })}
         {/* Outer Square Border */}
         <rect
           x="0" y="0" width="400" height="400"
           fill="transparent"
           stroke={strokeColor}
-          strokeWidth="3"
-          style={!isLight ? { filter: 'url(#glow)', strokeOpacity: 0.8 } : undefined}
+          strokeWidth="2"
+          strokeOpacity={strokeOpacity + 0.2}
+          style={!isLight ? { filter: 'url(#glow)' } : undefined}
         />
       </svg>
     </div>
