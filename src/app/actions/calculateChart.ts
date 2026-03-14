@@ -123,33 +123,30 @@ export async function generateAccurateChart(dateUTC: Date, lat: number, lon: num
     }
   });
 
-  // Calculate Ascendant (Lagna)
-  // Ascendant is where eastern horizon intersects ecliptic.
-  // Time = Sidereal Time at location.
-  const lst = time.ut * 24 * 15; // approximate Local Sidereal Time for Ascendant base
-  const ascendantEcliptic = (time.ut * 360 + lon) % 360; // Highly simplified lagna map fallback
-  // Use Astronomy-engine equator/horizon for a precise Lagna Ascendant matching Vedic houses.
-  // Actually, we can derive the Ascendant exactly using Right Ascension of MC. 
-  // For Vercel deployment stability, we fallback to a safe pure JS Asc calculation:
+  // Calculate TRUE Sidereal Ascendant (Lagna)
+  const gstHours = Astronomy.SiderealTime(time); // Apparent Greenwich Sidereal Time
+  let lstHours = (gstHours + lon / 15.0) % 24;
+  if (lstHours < 0) lstHours += 24;
   
-  // Exact Ascendant Calculation via RAMC
-  const d = daysSinceJ2000;
-  const lst_hours = (100.46 + 0.985647 * d + lon + 15 * time.ut) % 360;
-  let ascendantRad = Math.atan2(
-      Math.cos(lst_hours * Math.PI/180),
-      - (Math.sin(lst_hours * Math.PI/180) * Math.cos(23.44 * Math.PI/180) + Math.tan(lat * Math.PI/180) * Math.sin(23.44 * Math.PI/180))
-  );
-  let rawAscDegree = ascendantRad * 180/Math.PI;
-  if (rawAscDegree < 0) rawAscDegree += 360;
+  const ramcDeg = lstHours * 15;
+  const ramcRad = ramcDeg * Math.PI / 180;
+  const latRad = lat * Math.PI / 180;
+  const E = 23.4392911 * Math.PI / 180; // Obliquity of ecliptic J2000
   
-  let lagnaSidereal = rawAscDegree - ayanamsa;
+  const ascY = Math.cos(ramcRad);
+  const ascX = -(Math.sin(ramcRad) * Math.cos(E) + Math.tan(latRad) * Math.sin(E));
+  let ascDeg = Math.atan2(ascY, ascX) * 180 / Math.PI;
+  if (ascDeg < 0) ascDeg += 360;
+  
+  // Apply accurate Lahiri Ayanamsa to the tropical ascendant
+  let lagnaSidereal = ascDeg - ayanamsa;
   if (lagnaSidereal < 0) lagnaSidereal += 360;
-  if (lagnaSidereal > 360) lagnaSidereal -= 360;
+  if (lagnaSidereal >= 360) lagnaSidereal -= 360;
 
   const ascendantSign = Math.floor(lagnaSidereal / 30) + 1;
 
   return {
-    julianDay: time.ut, // Not exact JD but fits number
+    julianDay: time.ut, // Universal time Julian Day proxy
     ascendantDegree: lagnaSidereal,
     ascendantSign,
     houses: [lagnaSidereal], 

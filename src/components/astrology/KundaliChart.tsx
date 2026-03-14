@@ -10,18 +10,18 @@ interface KundaliChartProps {
 }
 
 const houses = [
-  { id: 1, points: "200,0 100,100 200,200 300,100", center: {x: 200, y: 100} },
-  { id: 2, points: "0,0 200,0 100,100", center: {x: 100, y: 35} },
-  { id: 3, points: "0,0 100,100 0,200", center: {x: 35, y: 100} },
-  { id: 4, points: "0,200 100,100 200,200 100,300", center: {x: 100, y: 200} },
-  { id: 5, points: "0,400 0,200 100,300", center: {x: 35, y: 300} },
-  { id: 6, points: "0,400 100,300 200,400", center: {x: 100, y: 365} },
-  { id: 7, points: "200,400 100,300 200,200 300,300", center: {x: 200, y: 300} },
-  { id: 8, points: "400,400 200,400 300,300", center: {x: 300, y: 365} },
-  { id: 9, points: "400,400 300,300 400,200", center: {x: 365, y: 300} },
-  { id: 10, points: "400,200 300,100 200,200 300,300", center: {x: 300, y: 200} },
-  { id: 11, points: "400,0 300,100 400,200", center: {x: 365, y: 100} },
-  { id: 12, points: "400,0 200,0 300,100", center: {x: 300, y: 35} },
+  { id: 1, points: "250,0 125,125 250,250 375,125", center: {x: 250, y: 125} },
+  { id: 2, points: "0,0 250,0 125,125", center: {x: 125, y: 45} },
+  { id: 3, points: "0,0 125,125 0,250", center: {x: 45, y: 125} },
+  { id: 4, points: "0,250 125,125 250,250 125,375", center: {x: 125, y: 250} },
+  { id: 5, points: "0,500 0,250 125,375", center: {x: 45, y: 375} },
+  { id: 6, points: "0,500 125,375 250,500", center: {x: 125, y: 455} },
+  { id: 7, points: "250,500 125,375 250,250 375,375", center: {x: 250, y: 375} },
+  { id: 8, points: "500,500 250,500 375,375", center: {x: 375, y: 455} },
+  { id: 9, points: "500,500 375,375 500,250", center: {x: 455, y: 375} },
+  { id: 10, points: "500,250 375,125 250,250 375,375", center: {x: 375, y: 250} },
+  { id: 11, points: "500,0 375,125 500,250", center: {x: 455, y: 125} },
+  { id: 12, points: "500,0 250,0 375,125", center: {x: 375, y: 45} },
 ];
 
 export const KundaliChart: React.FC<KundaliChartProps> = ({ chartData, className = "", theme = 'light' }) => {
@@ -40,28 +40,17 @@ export const KundaliChart: React.FC<KundaliChartProps> = ({ chartData, className
 
   const isLight = theme === 'light';
   
-  const containerClass = isLight 
-    ? "bg-amber-50/50 p-4 rounded-xl border border-amber-200/50 shadow-sm"
-    : "bg-transparent w-full";
-    
-  const strokeColor = isLight ? "#ca8a04" : "#fbbf24";
-  const strokeOpacity = isLight ? 1 : 0.4;
-  const textColor = isLight ? "fill-slate-800" : "fill-white";
-  const numColor = isLight ? "fill-amber-700/80" : "fill-amber-500/70";
+  const strokeColor = isLight ? "#B8860B" : "#D4AF37"; // Premium Gold Accent
+  const strokeOpacity = isLight ? 1 : 0.6;
+  const textColor = isLight ? "fill-[#2C3E50]" : "fill-white";
+  const numColor = isLight ? "fill-[#B8860B]" : "fill-[#D4AF37]";
 
   return (
-    <div className={`aspect-square w-full max-w-2xl mx-auto ${containerClass} ${className}`}>
-      <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-md font-sans overflow-visible" style={{fontFamily: 'Inter, sans-serif'}}>
-        <defs>
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
-
+    <div className={`aspect-square w-full max-w-3xl mx-auto rounded-xl overflow-hidden ${isLight ? 'bg-white/80 p-2 shadow-sm' : 'bg-transparent'} ${className}`}>
+      <svg viewBox="0 0 500 500" className="w-full h-full drop-shadow-md font-sans overflow-visible" style={{fontFamily: 'Inter, sans-serif'}}>
         {houses.map((house) => {
           const housePlanets = getPlanetsInHouse(house.id);
-          const hasMultiple = housePlanets.length > 1;
+          const hasMultiple = housePlanets.length > 2;
           
           return (
             <g key={house.id}>
@@ -71,16 +60,15 @@ export const KundaliChart: React.FC<KundaliChartProps> = ({ chartData, className
                 stroke={strokeColor}
                 strokeWidth="1.5"
                 strokeOpacity={strokeOpacity}
-                className={`transition-colors duration-500 ${isLight ? 'hover:fill-amber-100/30' : 'hover:fill-amber-900/40'}`}
-                style={!isLight ? { filter: 'url(#glow)' } : undefined}
+                className={`transition-colors duration-500 ${isLight ? 'hover:fill-[#D4AF37]/10' : 'hover:fill-[#D4AF37]/10'}`}
               />
               
-              {/* Zodiac Sign Number precisely placed in a subtle corner of the centroid */}
+              {/* Zodiac Sign Number - Placed slightly offset from center for elegance */}
               <text
                 x={house.center.x}
-                y={house.center.y - (hasMultiple ? 18 : 14)}
+                y={house.center.y - (housePlanets.length > 0 ? 22 : -6)}
                 textAnchor="middle"
-                className={`text-[11px] font-bold ${numColor} mix-blend-screen opacity-80 select-none`}
+                className={`text-lg font-bold ${numColor} opacity-70 select-none tracking-widest`}
               >
                 {getHouseSign(house.id)}
               </text>
@@ -88,18 +76,18 @@ export const KundaliChart: React.FC<KundaliChartProps> = ({ chartData, className
               {/* Planets mapping stacked cleanly */}
               <text
                 x={house.center.x}
-                y={house.center.y + (hasMultiple ? -4 : 2)}
+                y={house.center.y + (hasMultiple ? -6 : 6)}
                 textAnchor="middle"
-                className={`text-[10px] font-medium ${textColor} tracking-wider`}
+                className={`text-base font-semibold ${textColor} tracking-wider uppercase`}
               >
                 {housePlanets.map((p, index) => {
                   let symbol = '';
-                  if (p.isRetrograde) symbol += 'R';
+                  if (p.isRetrograde) symbol += 'ᴿ'; // Proper superscript for Retrograde
                   return (
                     <tspan
                       key={p.id}
                       x={house.center.x}
-                      dy={index === 0 ? 0 : 12}
+                      dy={index === 0 ? 0 : 18} // Increased vertical line height
                     >
                       {p.name.substring(0, 2)}{symbol} {Math.floor(p.longitude % 30)}°
                     </tspan>
@@ -111,12 +99,11 @@ export const KundaliChart: React.FC<KundaliChartProps> = ({ chartData, className
         })}
         {/* Outer Square Border */}
         <rect
-          x="0" y="0" width="400" height="400"
+          x="0" y="0" width="500" height="500"
           fill="transparent"
           stroke={strokeColor}
-          strokeWidth="2"
-          strokeOpacity={strokeOpacity + 0.2}
-          style={!isLight ? { filter: 'url(#glow)' } : undefined}
+          strokeWidth="3"
+          strokeOpacity={strokeOpacity + 0.3}
         />
       </svg>
     </div>
